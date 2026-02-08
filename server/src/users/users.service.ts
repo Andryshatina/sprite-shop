@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -10,6 +10,10 @@ export class UsersService {
   roundsOfHash = 10;
 
   async create(createUserDto: CreateUserDto) {
+    const existingUser = await this.findOneByEmail(createUserDto.email);
+    if (existingUser) {
+      throw new UnprocessableEntityException('User already exists');
+    }
     const hashedPass = await bcrypt.hash(
       createUserDto.password,
       this.roundsOfHash,
@@ -42,6 +46,10 @@ export class UsersService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...result } = user;
     return result;
+  }
+
+  async findOneByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
