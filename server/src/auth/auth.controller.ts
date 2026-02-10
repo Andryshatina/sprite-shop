@@ -12,6 +12,8 @@ import { CurrentUser } from './decorators/user.decorator';
 import { AuthDto } from './dto/auth.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { type RequestWithUser } from './types/auth-types';
+import { Auth } from './decorators/auth.decorator';
+import { Role } from 'src/generated/prisma/enums';
 
 @Controller('auth')
 export class AuthController {
@@ -28,7 +30,7 @@ export class AuthController {
     return this.authService.register(createUserDto);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @Auth(Role.ADMIN)
   @Get('profile')
   getProfile(@CurrentUser() user: RequestWithUser['user']) {
     return user;

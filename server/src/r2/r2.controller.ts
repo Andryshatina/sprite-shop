@@ -1,17 +1,21 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { R2Service } from './r2.service';
-import { AuthGuard } from '@nestjs/passport';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { Role } from '../generated/prisma/enums';
+
+import { UploadUrlDto } from './dto/upload-url.dto';
 
 @Controller('r2')
-@UseGuards(AuthGuard('jwt'))
 export class R2Controller {
   constructor(private readonly r2Service: R2Service) {}
 
+  @Auth(Role.ADMIN)
   @Post('upload-url')
-  async getPresignedUrl(
-    @Body('fileName') fileName: string,
-    @Body('contentType') contentType: string,
-  ) {
-    return this.r2Service.getPresignedUploadUrl(fileName, contentType);
+  async getPresignedUrl(@Body() uploadUrlDto: UploadUrlDto) {
+    return this.r2Service.getPresignedUploadUrl(
+      uploadUrlDto.fileName,
+      uploadUrlDto.contentType,
+      uploadUrlDto.isPrivate,
+    );
   }
 }
