@@ -35,7 +35,7 @@ export class AuthService {
   login(user: UserWithoutPassword) {
     const payload = {
       email: user.email,
-      sub: user.id as string | number,
+      sub: user.id,
       role: user.role,
     };
     return {
