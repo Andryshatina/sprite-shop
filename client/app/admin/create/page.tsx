@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import axios from "axios";
+import { FileUpload } from "@/components/file-upload";
 import { useState } from "react";
 
 export default function CreateProductPage() {
@@ -128,7 +129,7 @@ export default function CreateProductPage() {
                 type="number"
                 name="price"
                 min={0}
-                placeholder="Price"
+                placeholder="Price in cents"
                 required
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
@@ -137,12 +138,11 @@ export default function CreateProductPage() {
             <Field>
               <FieldLabel>Preview Image</FieldLabel>
               <FieldContent>
-                <Input
-                  id="previewImage"
-                  type="file"
-                  name="previewImage"
-                  required
-                  onChange={(e) => setPreviewImage(e.target.files?.[0] || null)}
+                <FileUpload
+                  value={previewImage}
+                  onChange={setPreviewImage}
+                  type="image"
+                  accept={{ "image/*": [] }}
                 />
               </FieldContent>
               <FieldDescription>
@@ -152,12 +152,10 @@ export default function CreateProductPage() {
             <Field>
               <FieldLabel>Product File</FieldLabel>
               <FieldContent>
-                <Input
-                  id="productFile"
+                <FileUpload
+                  value={productFile}
+                  onChange={setProductFile}
                   type="file"
-                  name="productFile"
-                  required
-                  onChange={(e) => setProductFile(e.target.files?.[0] || null)}
                 />
               </FieldContent>
               <FieldDescription>
