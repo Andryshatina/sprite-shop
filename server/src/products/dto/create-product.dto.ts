@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString, Min } from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
@@ -6,8 +6,8 @@ export class CreateProductDto {
   title: string;
 
   @IsString()
-  @IsOptional()
-  description?: string;
+  @IsNotEmpty()
+  description: string;
 
   @IsInt({ message: 'Price must be an integer' })
   @Min(0, { message: 'Price must be at least 0' })
