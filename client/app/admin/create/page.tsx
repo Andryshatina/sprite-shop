@@ -129,7 +129,7 @@ export default function CreateProductPage() {
                 type="number"
                 name="price"
                 min={0}
-                placeholder="Price in cents"
+                placeholder="Price in $"
                 required
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
