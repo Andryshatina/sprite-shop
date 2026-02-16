@@ -10,12 +10,16 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, ShoppingCart, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useCartStore } from "@/store/use-cart-store";
 
 export default function ProductPage() {
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const addToCart = useCartStore((state) => state.addToCart);
+  const isInCart = useCartStore((state) => state.isInCart);
 
   useEffect(() => {
     if (!id) return;
@@ -121,9 +125,11 @@ export default function ProductPage() {
             <Button
               size="lg"
               className="flex-1 w-full md:w-auto text-lg py-6 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all"
+              onClick={() => addToCart(product)}
+              disabled={isInCart(product.id)}
             >
               <ShoppingCart className="mr-2 w-5 h-5" />
-              Add to Cart
+              {isInCart(product.id) ? "In Cart" : "Add to Cart"}
             </Button>
             {/* Add more actions if needed, like wishlist */}
           </div>

@@ -20,8 +20,8 @@ interface ProductCardProps {
 function ProductCard({ product }: ProductCardProps) {
   return (
     <Link href={`/product/${product.id}`} className="block h-full">
-      <Card className="overflow-hidden h-full flex flex-col group hover:border-primary/50 hover:shadow-lg transition-all duration-300">
-        <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
+      <Card className="overflow-hidden h-full flex flex-col pt-0 group hover:border-primary/50 hover:shadow-lg transition-all duration-300">
+        <div className="relative aspect-square w-full overflow-hidden bg-muted">
           <Image
             src={product.imageUrl}
             alt={product.title}
