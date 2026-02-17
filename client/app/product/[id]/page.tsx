@@ -19,7 +19,7 @@ export default function ProductPage() {
   const [error, setError] = useState("");
 
   const addToCart = useCartStore((state) => state.addToCart);
-  const isInCart = useCartStore((state) => state.isInCart);
+  const cartItems = useCartStore((state) => state.cartItems);
 
   useEffect(() => {
     if (!id) return;
@@ -63,6 +63,8 @@ export default function ProductPage() {
       </div>
     );
   }
+
+  const isProductInCart = cartItems.some((item) => item.id === product.id);
 
   return (
     <div className="container mx-auto px-4 py-8 animate-in fade-in duration-500">
@@ -126,10 +128,10 @@ export default function ProductPage() {
               size="lg"
               className="flex-1 w-full md:w-auto text-lg py-6 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all"
               onClick={() => addToCart(product)}
-              disabled={isInCart(product.id)}
+              disabled={isProductInCart}
             >
               <ShoppingCart className="mr-2 w-5 h-5" />
-              {isInCart(product.id) ? "In Cart" : "Add to Cart"}
+              {isProductInCart ? "In Cart" : "Add to Cart"}
             </Button>
             {/* Add more actions if needed, like wishlist */}
           </div>

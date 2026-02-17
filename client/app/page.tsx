@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "@/lib/axios";
 import { Product } from "@/types";
 import ProductCard from "@/components/product-card";
 import { Loader2, Sparkles } from "lucide-react";
@@ -15,7 +15,7 @@ export default function Home() {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const response = await axios.get("http://localhost:3001/products");
+        const response = await api.get("/products");
         setProducts(response.data);
       } catch (error) {
         console.error(error);
@@ -37,7 +37,7 @@ export default function Home() {
             <Sparkles className="w-4 h-4 mr-2" />
             <span className="text-sm font-medium">Premium Digital Assets</span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tighter animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tighter animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100 bg-clip-text text-transparent bg-linear-to-r from-foreground to-foreground/70">
             Elevate Your <span className="text-primary">Game</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 leading-relaxed">

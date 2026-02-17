@@ -1,11 +1,28 @@
 "use client";
 
 import { useCartStore } from "@/store/use-cart-store";
+import { useAuthStore } from "@/store/auth";
 import Link from "next/link";
-import { Package, ShoppingCart } from "lucide-react";
+import {
+  Package,
+  ShoppingCart,
+  User,
+  LogOut,
+  LayoutDashboard,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 export default function Header() {
   const items = useCartStore((state) => state.cartItems);
+  const { isAuthenticated, user, logout } = useAuthStore();
 
   return (
     <header className="border-b bg-white">
@@ -23,9 +40,35 @@ export default function Header() {
               </span>
             )}
           </Link>
-          <Link href="/login" className="ml-6 text-lg font-bold">
-            Login
-          </Link>
+          {isAuthenticated ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="ml-6">
+                  <User className="w-6 h-6" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {user?.role === "ADMIN" && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin/create">
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      <span>Admin Dashboard</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={logout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link href="/login" className="ml-6 text-lg font-bold">
+              Login
+            </Link>
+          )}
         </div>
       </div>
     </header>

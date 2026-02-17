@@ -1,22 +1,22 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import axios from "axios";
-import { useRouter } from "next/navigation";
+import api from "@/lib/axios";
 import { useState } from "react";
-import { jwtDecode } from "jwt-decode";
-
-interface CustomJwtPayload {
-  sub: number;
-  email: string;
-  role: "ADMIN" | "USER";
-  exp: number;
-}
+import { useAuthStore } from "@/store/auth";
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function LoginPage() {
-  const router = useRouter();
+  const { login } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,20 +27,12 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.post("http://localhost:3001/auth/login", {
+      const response = await api.post("/auth/login", {
         email,
         password,
       });
-      console.log(response);
 
-      localStorage.setItem("token", response.data.access_token);
-      const decoded = jwtDecode<CustomJwtPayload>(response.data.access_token);
-
-      if (decoded.role === "ADMIN") {
-        router.push("/admin/create");
-      } else {
-        router.push("/");
-      }
+      login(response.data.access_token);
     } catch (error) {
       console.error(error);
       setError("Something went wrong");
@@ -89,6 +81,14 @@ export default function LoginPage() {
             )}
           </form>
         </CardContent>
+        <CardFooter>
+          <div className="text-sm text-muted-foreground w-full text-center">
+            Don&apos;t have an account?{" "}
+            <Link href="/register" className="text-primary hover:underline">
+              Sign up
+            </Link>
+          </div>
+        </CardFooter>
       </Card>
     </div>
   );
