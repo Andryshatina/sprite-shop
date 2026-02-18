@@ -5,5 +5,11 @@ import { RolesGuard } from '../roles.guard';
 import { Roles } from './roles.decorator';
 
 export function Auth(...roles: Role[]) {
-  return applyDecorators(Roles(...roles), UseGuards(JwtAuthGuard, RolesGuard));
+  if (roles.length > 0) {
+    return applyDecorators(
+      Roles(...roles),
+      UseGuards(JwtAuthGuard, RolesGuard),
+    );
+  }
+  return applyDecorators(UseGuards(JwtAuthGuard));
 }

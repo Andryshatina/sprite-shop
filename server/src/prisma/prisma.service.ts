@@ -7,17 +7,13 @@ import 'dotenv/config';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
   constructor() {
-    // Налаштовуємо адаптер
     const connectionString = `${process.env.DATABASE_URL}`;
     const pool = new Pool({ connectionString });
     const adapter = new PrismaPg(pool);
-
-    // Передаємо адаптер у батьківський клас PrismaClient
     super({ adapter });
   }
 
   async onModuleInit() {
-    // Цей метод NestJS викликає автоматично при старті додатка
     await this.$connect();
   }
 }
