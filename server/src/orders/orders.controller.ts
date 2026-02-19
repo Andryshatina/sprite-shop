@@ -27,6 +27,15 @@ export class OrdersController {
     return this.ordersService.create(user.id, createOrderDto.productIds);
   }
 
+  @Auth()
+  @Post(':id/checkout')
+  createCheckoutSession(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestWithUser['user'],
+  ) {
+    return this.ordersService.createCheckoutSession(user.id, +id);
+  }
+
   @Get()
   findAll() {
     return this.ordersService.findAll();
