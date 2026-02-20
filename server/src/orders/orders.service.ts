@@ -109,6 +109,48 @@ export class OrdersService {
     return { url: session.url };
   }
 
+  async verifyPayment(userId: number, sessionId: string) {
+    try {
+      const session = await this.stripe.checkout.sessions.retrieve(sessionId);
+
+      if (session.payment_status === 'paid') {
+        const orderId = Number(session.metadata?.orderId);
+
+        const order = await this.prisma.order.findUnique({
+          where: { id: orderId },
+        });
+
+        if (!order) throw new NotFoundException('Order not found');
+        if (order.userId !== userId)
+          throw new ForbiddenException(
+            'You are not authorized to access this order',
+          );
+
+        if (order.status === 'PAID') return { message: 'Order already paid' };
+
+        if (order.status === 'PENDING') {
+          await this.prisma.order.update({
+            where: { id: orderId },
+            data: { status: 'PAID' },
+          });
+        }
+        return {
+          success: true,
+          message: 'Payment verified successfully',
+          orderId,
+        };
+      }
+
+      return {
+        success: false,
+        message: 'Payment not verified',
+      };
+    } catch (error) {
+      console.error(error);
+      throw new BadRequestException('Invalid session ID');
+    }
+  }
+
   findAll() {
     return `This action returns all orders`;
   }

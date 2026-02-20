@@ -3,14 +3,52 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/store/use-cart-store";
+import { useAuthStore } from "@/store/auth";
 import Link from "next/link";
-import { ArrowLeft, ShoppingCart, Trash2, CreditCard } from "lucide-react";
+import {
+  ArrowLeft,
+  ShoppingCart,
+  Trash2,
+  CreditCard,
+  Loader2,
+} from "lucide-react";
 import Image from "next/image";
+import router from "next/router";
+import { useState } from "react";
+import api from "@/lib/axios";
 
 export default function CartPage() {
   const { cartItems, clearCart, removeFromCart } = useCartStore();
+  const { isAuthenticated } = useAuthStore();
+
+  const [loading, setLoading] = useState(false);
 
   const totalPrice = cartItems.reduce((acc, item) => acc + item.price, 0);
+
+  const handleCheckout = async () => {
+    if (!isAuthenticated) {
+      alert("You must be logged in to checkout");
+      router.push("/login");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const order = await api.post("/orders", {
+        productIds: cartItems.map((item) => item.id),
+      });
+
+      const session = await api.post(`/orders/${order.data.id}/checkout`);
+
+      if (session.data.url) window.location.href = session.data.url;
+      else throw new Error("Checkout session not created");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (cartItems.length === 0) {
     return (
@@ -31,10 +69,6 @@ export default function CartPage() {
       </div>
     );
   }
-
-  const handleCheckout = () => {
-    // TODO: Implement checkout logic
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
@@ -120,8 +154,17 @@ export default function CartPage() {
                   <span>${(totalPrice / 100).toFixed(2)}</span>
                 </div>
 
-                <Button className="w-full" size="lg">
-                  <CreditCard className="mr-2 h-4 w-4" />
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={handleCheckout}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <CreditCard className="mr-2 h-4 w-4" />
+                  )}
                   Go to payment
                 </Button>
 

@@ -36,6 +36,15 @@ export class OrdersController {
     return this.ordersService.createCheckoutSession(user.id, +id);
   }
 
+  @Auth()
+  @Post(':id/verify')
+  verifyPayment(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestWithUser['user'],
+  ) {
+    return this.ordersService.verifyPayment(user.id, id);
+  }
+
   @Get()
   findAll() {
     return this.ordersService.findAll();
