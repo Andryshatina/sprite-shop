@@ -39,6 +39,15 @@ export class ProductsController {
     return this.productsService.findPurchasedByUser(user.id);
   }
 
+  @Auth()
+  @Get(':id/download')
+  getDownloadUrl(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestWithUser['user'],
+  ) {
+    return this.productsService.getDownloadUrl(user.id, +id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productsService.findOne(+id);

@@ -1,5 +1,9 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+} from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { v4 as uuidv4 } from 'uuid';
@@ -47,6 +51,25 @@ export class R2Service {
         uploadUrl,
         fileKey: uniqueName,
       };
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(
+        'Failed to generate presigned URL',
+      );
+    }
+  }
+
+  async getPresignedDownloadUrl(fileKey: string) {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.configService.getOrThrow<string>('R2_PRIVATE_BUCKET'),
+        Key: fileKey,
+      });
+
+      const downloadUrl = await getSignedUrl(this.s3Client, command, {
+        expiresIn: 3600,
+      });
+      return downloadUrl;
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(
