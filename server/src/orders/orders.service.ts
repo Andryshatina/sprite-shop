@@ -2,9 +2,9 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { UpdateOrderDto } from './dto/update-order.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
@@ -17,9 +17,12 @@ export class OrdersService {
     private prisma: PrismaService,
     private config: ConfigService,
   ) {
-    this.stripe = new Stripe(this.config.getOrThrow('STRIPE_SECRET_KEY'), {
-      apiVersion: '2026-01-28.clover',
-    });
+    this.stripe = new Stripe(
+      this.config.getOrThrow<string>('STRIPE_SECRET_KEY'),
+      {
+        apiVersion: '2026-01-28.clover',
+      },
+    );
   }
 
   async create(userId: number, productIds: number[]) {
@@ -84,7 +87,7 @@ export class OrdersService {
           name: item.product.title,
           description: item.product.description,
           images: [
-            `${this.config.getOrThrow('R2_PUBLIC_URL')}/images/${item.product.imageKey}`,
+            `${this.config.getOrThrow<string>('R2_PUBLIC_URL')}/images/${item.product.imageKey}`,
           ],
         },
         unit_amount: item.product.price,
@@ -97,8 +100,8 @@ export class OrdersService {
       line_items: lineItems,
       mode: 'payment',
 
-      success_url: `${this.config.getOrThrow('FRONTEND_URL')}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${this.config.getOrThrow('FRONTEND_URL')}/cancel`,
+      success_url: `${this.config.getOrThrow<string>('FRONTEND_URL')}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${this.config.getOrThrow<string>('FRONTEND_URL')}/cancel`,
 
       metadata: {
         orderId: order.id,
@@ -109,46 +112,41 @@ export class OrdersService {
     return { url: session.url };
   }
 
-  async verifyPayment(userId: number, sessionId: string) {
+  async handleStripeWebhook(signature: string, payload: Buffer) {
+    const webhookSecret = this.config.getOrThrow<string>(
+      'STRIPE_WEBHOOK_SECRET',
+    );
+    let event: Stripe.Event;
     try {
-      const session = await this.stripe.checkout.sessions.retrieve(sessionId);
-
-      if (session.payment_status === 'paid') {
-        const orderId = Number(session.metadata?.orderId);
-
-        const order = await this.prisma.order.findUnique({
-          where: { id: orderId },
-        });
-
-        if (!order) throw new NotFoundException('Order not found');
-        if (order.userId !== userId)
-          throw new ForbiddenException(
-            'You are not authorized to access this order',
-          );
-
-        if (order.status === 'PAID') return { message: 'Order already paid' };
-
-        if (order.status === 'PENDING') {
-          await this.prisma.order.update({
-            where: { id: orderId },
-            data: { status: 'PAID' },
-          });
-        }
-        return {
-          success: true,
-          message: 'Payment verified successfully',
-          orderId,
-        };
-      }
-
-      return {
-        success: false,
-        message: 'Payment not verified',
-      };
+      event = this.stripe.webhooks.constructEvent(
+        payload,
+        signature,
+        webhookSecret,
+      );
     } catch (error) {
-      console.error(error);
-      throw new BadRequestException('Invalid session ID');
+      Logger.error('Webhook signature verification failed', error);
+      throw new BadRequestException('Invalid webhook signature');
     }
+
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+
+      const orderId = session.metadata?.orderId;
+
+      if (orderId) {
+        Logger.log('Payment completed for order:', orderId);
+
+        await this.prisma.order.update({
+          where: { id: +orderId },
+          data: {
+            status: 'PAID',
+            stripeSessionId: session.id,
+          },
+        });
+      }
+    }
+
+    return { success: true };
   }
 
   findAll() {
@@ -159,11 +157,7 @@ export class OrdersService {
     return `This action returns a #${id} order`;
   }
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
-  }
-
   remove(id: number) {
-    return `This action removes a #${id} order`;
+    return this.prisma.order.delete({ where: { id } });
   }
 }

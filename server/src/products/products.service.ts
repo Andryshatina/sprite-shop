@@ -47,6 +47,24 @@ export class ProductsService {
     return this.mapProduct(product);
   }
 
+  async findPurchasedByUser(userId: number) {
+    const orders = await this.prisma.order.findMany({
+      where: { userId, status: 'PAID' },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    const products = orders.flatMap((order) =>
+      order.items.map((item) => item.product),
+    );
+    return products.map((p) => this.mapProduct(p));
+  }
+
   update(id: number, updateProductDto: UpdateProductDto) {
     return this.prisma.product.update({
       where: { id },

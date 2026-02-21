@@ -33,6 +33,12 @@ export class ProductsController {
     return this.productsService.findAll();
   }
 
+  @Auth()
+  @Get('library')
+  findPurchasedByUser(@CurrentUser() user: RequestWithUser['user']) {
+    return this.productsService.findPurchasedByUser(user.id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productsService.findOne(+id);

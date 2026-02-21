@@ -3,13 +3,14 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
+  Headers,
+  type RawBodyRequest,
+  BadRequestException,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
 import { CurrentUser } from 'src/auth/decorators/user.decorator';
 import { type RequestWithUser } from 'src/auth/types/auth-types';
 import { Auth } from 'src/auth/decorators/auth.decorator';
@@ -36,13 +37,18 @@ export class OrdersController {
     return this.ordersService.createCheckoutSession(user.id, +id);
   }
 
-  @Auth()
-  @Post(':id/verify')
-  verifyPayment(
-    @Param('id') id: string,
-    @CurrentUser() user: RequestWithUser['user'],
+  @Post('webhook')
+  async handleStripeWebhook(
+    @Headers('stripe-signature') signature: string,
+    @Body() req: RawBodyRequest<Express.Request>,
   ) {
-    return this.ordersService.verifyPayment(user.id, id);
+    if (!req.rawBody) {
+      throw new BadRequestException('Raw body is required');
+    }
+    if (!signature) {
+      throw new BadRequestException('Signature is required');
+    }
+    return this.ordersService.handleStripeWebhook(signature, req.rawBody);
   }
 
   @Get()
@@ -53,11 +59,6 @@ export class OrdersController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.ordersService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.ordersService.update(+id, updateOrderDto);
   }
 
   @Delete(':id')
