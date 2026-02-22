@@ -8,22 +8,15 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
+import { StripeService } from 'src/stripe/stripe.service';
 
 @Injectable()
 export class OrdersService {
-  private stripe: Stripe;
-
   constructor(
     private prisma: PrismaService,
     private config: ConfigService,
-  ) {
-    this.stripe = new Stripe(
-      this.config.getOrThrow<string>('STRIPE_SECRET_KEY'),
-      {
-        apiVersion: '2026-01-28.clover',
-      },
-    );
-  }
+    private stripeService: StripeService,
+  ) {}
 
   async create(userId: number, productIds: number[]) {
     const products = await this.prisma.product.findMany({
@@ -35,7 +28,7 @@ export class OrdersService {
 
     const total = products.reduce((acc, product) => acc + product.price, 0);
 
-    const order = this.prisma.order.create({
+    return this.prisma.order.create({
       data: {
         userId,
         total,
@@ -55,8 +48,6 @@ export class OrdersService {
         },
       },
     });
-
-    return order;
   }
 
   async createCheckoutSession(userId: number, orderId: number) {
@@ -87,7 +78,7 @@ export class OrdersService {
           name: item.product.title,
           description: item.product.description,
           images: [
-            `${this.config.getOrThrow<string>('R2_PUBLIC_URL')}/images/${item.product.imageKey}`,
+            `${this.config.getOrThrow<string>('R2_PUBLIC_URL')}/${item.product.imageKey}`,
           ],
         },
         unit_amount: item.product.price,
@@ -95,7 +86,7 @@ export class OrdersService {
       quantity: 1,
     }));
 
-    const session = await this.stripe.checkout.sessions.create({
+    const session = await this.stripeService.stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
@@ -118,7 +109,7 @@ export class OrdersService {
     );
     let event: Stripe.Event;
     try {
-      event = this.stripe.webhooks.constructEvent(
+      event = this.stripeService.stripe.webhooks.constructEvent(
         payload,
         signature,
         webhookSecret,

@@ -13,13 +13,14 @@ import {
   Loader2,
 } from "lucide-react";
 import Image from "next/image";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import api from "@/lib/axios";
 
 export default function CartPage() {
   const { cartItems, clearCart, removeFromCart } = useCartStore();
   const { isAuthenticated } = useAuthStore();
+  const router = useRouter();
 
   const [loading, setLoading] = useState(false);
 

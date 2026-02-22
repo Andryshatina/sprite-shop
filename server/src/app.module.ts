@@ -9,6 +9,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { R2Module } from './r2/r2.module';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { OrdersModule } from './orders/orders.module';
     R2Module,
     ProductsModule,
     OrdersModule,
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

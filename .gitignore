@@ -17,3 +17,7 @@ Thumbs.db
 # IDEs
 .idea
 .vscode
+
+# Root Dev Configuration
+/package.json
+/package-lock.json
