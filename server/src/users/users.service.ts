@@ -3,11 +3,18 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { User } from '../generated/prisma/client';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
   roundsOfHash = 10;
+
+  private excludePassword(user: User): Omit<User, 'password'> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...result } = user;
+    return result;
+  }
 
   async create(createUserDto: CreateUserDto) {
     const existingUser = await this.findOneByEmail(createUserDto.email);
@@ -22,18 +29,12 @@ export class UsersService {
     const user = await this.prisma.user.create({
       data: createUserDto,
     });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...result } = user;
-    return result;
+    return this.excludePassword(user);
   }
 
   async findAll() {
     const users = await this.prisma.user.findMany();
-    return users.map((user) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...result } = user;
-      return result;
-    });
+    return users.map((user) => this.excludePassword(user));
   }
 
   async findOne(id: number) {
@@ -43,9 +44,7 @@ export class UsersService {
       return null;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...result } = user;
-    return result;
+    return this.excludePassword(user);
   }
 
   async findOneByEmail(email: string) {
@@ -57,9 +56,7 @@ export class UsersService {
       where: { id },
       data: updateUserDto,
     });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...result } = user;
-    return result;
+    return this.excludePassword(user);
   }
 
   async remove(id: number) {

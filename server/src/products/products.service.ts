@@ -26,15 +26,15 @@ export class ProductsService {
     };
   }
 
-  create(userId: number, createProductDto: CreateProductDto) {
-    const product = this.prisma.product.create({
+  async create(userId: number, createProductDto: CreateProductDto) {
+    const product = await this.prisma.product.create({
       data: {
         ...createProductDto,
         isPublished: true,
         authorId: userId,
       },
     });
-    return product;
+    return this.mapProduct(product);
   }
 
   async findAll() {
@@ -96,11 +96,12 @@ export class ProductsService {
     return { url: downloadUrl };
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return this.prisma.product.update({
+  async update(id: number, updateProductDto: UpdateProductDto) {
+    const product = await this.prisma.product.update({
       where: { id },
       data: updateProductDto,
     });
+    return this.mapProduct(product);
   }
 
   remove(id: number) {
