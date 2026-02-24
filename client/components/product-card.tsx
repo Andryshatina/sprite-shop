@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Eye } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface ProductCardProps {
   product: Product;
@@ -66,10 +67,7 @@ function ProductCard({ product }: ProductCardProps) {
         <CardFooter className="pt-0 pb-4">
           <div className="flex w-full items-center justify-between">
             <span className="font-bold text-xl text-foreground">
-              {new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: "USD",
-              }).format(product.price / 100)}
+              {formatCurrency(product.price)}
             </span>
           </div>
         </CardFooter>

@@ -16,6 +16,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import api from "@/lib/axios";
+import { formatCurrency } from "@/lib/utils";
 
 export default function CartPage() {
   const { cartItems, clearCart, removeFromCart } = useCartStore();
@@ -102,7 +103,7 @@ export default function CartPage() {
                         </p>
                       </div>
                       <div className="font-bold text-lg">
-                        ${(item.price / 100).toFixed(2)}
+                        {formatCurrency(item.price)}
                       </div>
                     </div>
 
@@ -140,7 +141,7 @@ export default function CartPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Total products</span>
-                    <span>${(totalPrice / 100).toFixed(2)}</span>
+                    <span>{formatCurrency(totalPrice)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Taxes</span>
@@ -152,7 +153,7 @@ export default function CartPage() {
 
                 <div className="flex justify-between text-xl font-bold">
                   <span>Total to pay</span>
-                  <span>${(totalPrice / 100).toFixed(2)}</span>
+                  <span>{formatCurrency(totalPrice)}</span>
                 </div>
 
                 <Button

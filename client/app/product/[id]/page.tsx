@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, ShoppingCart, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useCartStore } from "@/store/use-cart-store";
+import { formatCurrency } from "@/lib/utils";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -110,10 +111,7 @@ export default function ProductPage() {
             </h1>
 
             <p className="text-2xl md:text-3xl font-bold text-primary">
-              {new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: "USD",
-              }).format(product.price / 100)}
+              {formatCurrency(product.price)}
             </p>
           </div>
 
