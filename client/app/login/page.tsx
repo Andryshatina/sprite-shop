@@ -14,10 +14,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
 
 export default function LoginPage() {
+  const router = useRouter();
   const { login } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
