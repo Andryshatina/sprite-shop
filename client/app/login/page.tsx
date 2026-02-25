@@ -40,8 +40,7 @@ export default function LoginPage() {
       console.error(err);
       const error = err as AxiosError<{ message: string }>;
       setError(
-        error.response?.data?.message ||
-          "Registration failed. Please try again.",
+        error.response?.data?.message || "Login failed. Please try again.",
       );
     } finally {
       setLoading(false);
