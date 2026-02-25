@@ -14,6 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import router from "next/router";
+import { AxiosError } from "axios";
 
 export default function LoginPage() {
   const { login } = useAuthStore();
@@ -33,9 +35,14 @@ export default function LoginPage() {
       });
 
       login(response.data.access_token);
-    } catch (error) {
-      console.error(error);
-      setError("Something went wrong");
+      router.push("/");
+    } catch (err: unknown) {
+      console.error(err);
+      const error = err as AxiosError<{ message: string }>;
+      setError(
+        error.response?.data?.message ||
+          "Registration failed. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
