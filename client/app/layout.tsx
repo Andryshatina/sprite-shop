@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Sprite Shop",
-  description: "Sprite Shop",
+  description: "Your one-stop shop for high-quality game sprites and assets.",
 };
 
 export default function RootLayout({
