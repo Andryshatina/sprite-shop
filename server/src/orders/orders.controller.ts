@@ -14,6 +14,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { CurrentUser } from 'src/auth/decorators/user.decorator';
 import { type RequestWithUser } from 'src/auth/types/auth-types';
 import { Auth } from 'src/auth/decorators/auth.decorator';
+import { Role } from '../generated/prisma/enums';
 
 @Controller('orders')
 export class OrdersController {
@@ -51,16 +52,19 @@ export class OrdersController {
     return this.ordersService.handleStripeWebhook(signature, req.rawBody);
   }
 
+  @Auth(Role.ADMIN)
   @Get()
   findAll() {
     return this.ordersService.findAll();
   }
 
+  @Auth()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.ordersService.findOne(+id);
   }
 
+  @Auth(Role.ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.ordersService.remove(+id);

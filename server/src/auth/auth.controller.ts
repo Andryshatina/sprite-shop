@@ -13,7 +13,6 @@ import { AuthDto } from './dto/auth.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { type RequestWithUser } from './types/auth-types';
 import { Auth } from './decorators/auth.decorator';
-import { Role } from 'src/generated/prisma/enums';
 
 @Controller('auth')
 export class AuthController {
@@ -30,7 +29,7 @@ export class AuthController {
     return this.authService.register(createUserDto);
   }
 
-  @Auth(Role.ADMIN)
+  @Auth()
   @Get('profile')
   getProfile(@CurrentUser() user: RequestWithUser['user']) {
     return user;

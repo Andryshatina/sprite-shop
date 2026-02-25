@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import {
   S3Client,
   PutObjectCommand,
@@ -12,6 +16,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class R2Service {
   private readonly s3Client: S3Client;
   private readonly bucketName: string;
+  private readonly logger = new Logger(R2Service.name);
 
   constructor(private readonly configService: ConfigService) {
     this.s3Client = new S3Client({
@@ -52,7 +57,7 @@ export class R2Service {
         fileKey: uniqueName,
       };
     } catch (error) {
-      console.error(error);
+      this.logger.error('Failed to generate presigned URL', error);
       throw new InternalServerErrorException(
         'Failed to generate presigned URL',
       );
@@ -71,7 +76,7 @@ export class R2Service {
       });
       return downloadUrl;
     } catch (error) {
-      console.error(error);
+      this.logger.error('Failed to generate presigned URL', error);
       throw new InternalServerErrorException(
         'Failed to generate presigned URL',
       );

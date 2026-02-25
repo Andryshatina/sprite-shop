@@ -140,12 +140,39 @@ export class OrdersService {
     return { success: true };
   }
 
-  findAll() {
-    return `This action returns all orders`;
+  async findAll() {
+    return this.prisma.order.findMany({
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
+  async findOne(id: number) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+    if (!order) throw new NotFoundException(`Order with id ${id} not found`);
+    return order;
   }
 
   remove(id: number) {

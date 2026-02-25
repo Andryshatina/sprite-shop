@@ -39,9 +39,6 @@ export class ProductsService {
 
   async findAll() {
     const products = await this.prisma.product.findMany();
-    if (!products) {
-      throw new NotFoundException(`Products not found`);
-    }
     return products.map((p) => this.mapProduct(p));
   }
 

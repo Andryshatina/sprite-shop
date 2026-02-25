@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import axios from "axios";
+import api from "@/lib/axios";
 import { FileUpload } from "@/components/file-upload";
 import { useState } from "react";
 
@@ -22,27 +22,20 @@ export default function CreateProductPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const uploadToR2 = async (file: File, isPrivate: boolean, token: string) => {
+  const uploadToR2 = async (file: File, isPrivate: boolean) => {
     const {
       data: { uploadUrl, fileKey },
-    } = await axios.post(
-      "http://localhost:3001/r2/upload-url",
-      {
-        fileName: file.name,
-        contentType: file.type,
-        isPrivate,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
+    } = await api.post("/r2/upload-url", {
+      fileName: file.name,
+      contentType: file.type,
+      isPrivate,
+    });
 
-    await axios.put(uploadUrl, file, {
+    await api.put(uploadUrl, file, {
       headers: {
         "Content-Type": file.type,
       },
+      baseURL: "",
     });
 
     return fileKey;
@@ -51,41 +44,28 @@ export default function CreateProductPage() {
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("You are not authorized to create a product");
-        return;
-      }
-
       if (!previewImage || !productFile) {
         setError("Please upload both a preview image and a product file");
+        setLoading(false);
         return;
       }
 
-      const previewImageKey = await uploadToR2(previewImage, false, token);
-      const productFileKey = await uploadToR2(productFile, true, token);
+      const previewImageKey = await uploadToR2(previewImage, false);
+      const productFileKey = await uploadToR2(productFile, true);
 
-      const response = await axios.post(
-        "http://localhost:3001/products",
-        {
-          title,
-          description,
-          price: Number(price) * 100,
-          imageKey: previewImageKey,
-          fileKey: productFileKey,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      console.log(response);
-      setLoading(false);
+      await api.post("/products", {
+        title,
+        description,
+        price: Number(price) * 100,
+        imageKey: previewImageKey,
+        fileKey: productFileKey,
+      });
     } catch (error) {
       console.error(error);
       setError("Something went wrong");
+    } finally {
       setLoading(false);
     }
   };

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
-import axios from "axios";
+import api from "@/lib/axios";
 import { Product } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,10 +28,7 @@ export default function ProductPage() {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        // Assuming the API supports fetching by ID:
-        const response = await axios.get(
-          `http://localhost:3001/products/${id}`,
-        );
+        const response = await api.get(`/products/${id}`);
         setProduct(response.data);
       } catch (err) {
         console.error(err);

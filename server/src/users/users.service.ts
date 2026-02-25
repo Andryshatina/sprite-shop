@@ -8,7 +8,7 @@ import { User } from '../generated/prisma/client';
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
-  roundsOfHash = 10;
+  private readonly roundsOfHash = 10;
 
   private excludePassword(user: User): Omit<User, 'password'> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -25,9 +25,11 @@ export class UsersService {
       createUserDto.password,
       this.roundsOfHash,
     );
-    createUserDto.password = hashedPass;
     const user = await this.prisma.user.create({
-      data: createUserDto,
+      data: {
+        ...createUserDto,
+        password: hashedPass,
+      },
     });
     return this.excludePassword(user);
   }
