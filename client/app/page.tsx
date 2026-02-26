@@ -1,31 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import api from "@/lib/axios";
-import { Product } from "@/types";
+import { useProducts } from "@/hooks/use-products";
 import ProductCard from "@/components/product-card";
 import { Loader2, Sparkles } from "lucide-react";
 
 export default function Home() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        const response = await api.get("/products");
-        setProducts(response.data);
-      } catch (error) {
-        console.error(error);
-        setError("Failed to load products. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProducts();
-  }, []);
+  const { data: products, isLoading, error } = useProducts();
 
   return (
     <main className="min-h-screen bg-background">
@@ -51,10 +31,9 @@ export default function Home() {
       <section className="container mx-auto px-4 py-16">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-bold tracking-tight">Featured Assets</h2>
-          {/* Filter controls can go here */}
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-4">
             <Loader2 className="w-10 h-10 animate-spin text-primary" />
             <p className="text-muted-foreground">Loading assets...</p>
@@ -63,12 +42,14 @@ export default function Home() {
           <div className="text-center py-20 text-destructive bg-destructive/5 rounded-lg border border-destructive/20 relative overflow-hidden">
             <div className="relative z-10">
               <p className="text-lg font-medium mb-1">Error Loading Products</p>
-              <p className="text-sm opacity-80">{error}</p>
+              <p className="text-sm opacity-80">
+                Failed to load products. Please try again later.
+              </p>
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product, index) => (
+            {products?.map((product, index) => (
               <div
                 key={product.id}
                 className="animate-in fade-in slide-in-from-bottom-8 duration-500 fill-mode-both"
@@ -80,7 +61,7 @@ export default function Home() {
           </div>
         )}
 
-        {!loading && !error && products.length === 0 && (
+        {!isLoading && !error && products?.length === 0 && (
           <div className="text-center py-32 border-2 border-dashed border-muted rounded-xl">
             <p className="text-xl text-muted-foreground">No products found.</p>
             <p className="text-sm text-muted-foreground mt-2">

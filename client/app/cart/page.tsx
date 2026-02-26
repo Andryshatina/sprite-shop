@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -14,8 +15,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import api from "@/lib/axios";
+import { useCheckout } from "@/hooks/use-checkout";
 import { formatCurrency } from "@/lib/utils";
 
 export default function CartPage() {
@@ -23,33 +23,15 @@ export default function CartPage() {
   const { isAuthenticated } = useAuthStore();
   const router = useRouter();
 
-  const [loading, setLoading] = useState(false);
+  const { checkout, isLoading, totalPrice } = useCheckout();
 
-  const totalPrice = cartItems.reduce((acc, item) => acc + item.price, 0);
-
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (!isAuthenticated) {
       alert("You must be logged in to checkout");
       router.push("/login");
       return;
     }
-
-    try {
-      setLoading(true);
-
-      const order = await api.post("/orders", {
-        productIds: cartItems.map((item) => item.id),
-      });
-
-      const session = await api.post(`/orders/${order.data.id}/checkout`);
-
-      if (session.data.url) window.location.href = session.data.url;
-      else throw new Error("Checkout session not created");
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
+    checkout();
   };
 
   if (cartItems.length === 0) {
@@ -160,9 +142,9 @@ export default function CartPage() {
                   className="w-full"
                   size="lg"
                   onClick={handleCheckout}
-                  disabled={loading}
+                  disabled={isLoading}
                 >
-                  {loading ? (
+                  {isLoading ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <CreditCard className="mr-2 h-4 w-4" />

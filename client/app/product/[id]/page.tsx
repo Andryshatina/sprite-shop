@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
-import api from "@/lib/axios";
-import { Product } from "@/types";
+import { useProduct } from "@/hooks/use-products";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -15,33 +13,12 @@ import { formatCurrency } from "@/lib/utils";
 
 export default function ProductPage() {
   const { id } = useParams();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { data: product, isLoading, error } = useProduct(id as string);
 
   const addToCart = useCartStore((state) => state.addToCart);
   const cartItems = useCartStore((state) => state.cartItems);
 
-  useEffect(() => {
-    if (!id) return;
-
-    const fetchProduct = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get(`/products/${id}`);
-        setProduct(response.data);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load product");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProduct();
-  }, [id]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -53,7 +30,7 @@ export default function ProductPage() {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <h2 className="text-xl text-destructive mb-4">
-          {error || "Product not found"}
+          {error ? "Failed to load product" : "Product not found"}
         </h2>
         <Button asChild variant="outline">
           <Link href="/">Back to Shop</Link>
@@ -97,7 +74,6 @@ export default function ProductPage() {
               <Badge variant={product.isPublished ? "default" : "secondary"}>
                 {product.isPublished ? "In Stock" : "Unavailable"}
               </Badge>
-              {/* Added a placeholder category/tag if available, otherwise just ID for dev */}
               <span className="text-xs text-muted-foreground">
                 ID: {product.id}
               </span>
@@ -128,7 +104,6 @@ export default function ProductPage() {
               <ShoppingCart className="mr-2 w-5 h-5" />
               {isProductInCart ? "In Cart" : "Add to Cart"}
             </Button>
-            {/* Add more actions if needed, like wishlist */}
           </div>
 
           <Card className="p-4 bg-muted/30 border-none mt-4">
