@@ -1,6 +1,7 @@
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -12,6 +13,7 @@ import { R2Service } from 'src/r2/r2.service';
 
 @Injectable()
 export class ProductsService {
+  private readonly logger = new Logger(ProductsService.name);
   private readonly publicUrl: string;
 
   constructor(
@@ -40,11 +42,26 @@ export class ProductsService {
     return this.mapProduct(product);
   }
 
-  async findAll() {
-    const products = await this.prisma.product.findMany({
-      where: { isPublished: true },
-    });
-    return products.map((p) => this.mapProduct(p));
+  async findAll(page: number, limit: number) {
+    const skip = (page - 1) * limit;
+    const [products, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where: { isPublished: true },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.product.count({ where: { isPublished: true } }),
+    ]);
+    return {
+      data: products.map((p) => this.mapProduct(p)),
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: number) {
