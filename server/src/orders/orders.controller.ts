@@ -8,6 +8,8 @@ import {
   Headers,
   type RawBodyRequest,
   BadRequestException,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -22,6 +24,7 @@ export class OrdersController {
 
   @Auth()
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   create(
     @Body() createOrderDto: CreateOrderDto,
     @CurrentUser() user: RequestWithUser['user'],
@@ -31,6 +34,7 @@ export class OrdersController {
 
   @Auth()
   @Post(':id/checkout')
+  @HttpCode(HttpStatus.CREATED)
   createCheckoutSession(
     @Param('id') id: string,
     @CurrentUser() user: RequestWithUser['user'],
@@ -60,12 +64,16 @@ export class OrdersController {
 
   @Auth()
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ordersService.findOne(+id);
+  findOne(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestWithUser['user'],
+  ) {
+    return this.ordersService.findOne(+id, user.id, user.role);
   }
 
   @Auth(Role.ADMIN)
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
     return this.ordersService.remove(+id);
   }

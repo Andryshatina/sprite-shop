@@ -5,6 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { Role } from '../generated/prisma/enums';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
@@ -12,6 +13,8 @@ import { StripeService } from 'src/stripe/stripe.service';
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+
   constructor(
     private prisma: PrismaService,
     private config: ConfigService,
@@ -115,7 +118,7 @@ export class OrdersService {
         webhookSecret,
       );
     } catch (error) {
-      Logger.error('Webhook signature verification failed', error);
+      this.logger.error('Webhook signature verification failed', error);
       throw new BadRequestException('Invalid webhook signature');
     }
 
@@ -125,7 +128,7 @@ export class OrdersService {
       const orderId = session.metadata?.orderId;
 
       if (orderId) {
-        Logger.log('Payment completed for order:', orderId);
+        this.logger.log(`Payment completed for order: ${orderId}`);
 
         await this.prisma.order.update({
           where: { id: +orderId },
@@ -160,7 +163,7 @@ export class OrdersService {
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, requestingUserId: number, role: Role) {
     const order = await this.prisma.order.findUnique({
       where: { id },
       include: {
@@ -172,6 +175,11 @@ export class OrdersService {
       },
     });
     if (!order) throw new NotFoundException(`Order with id ${id} not found`);
+    if (role !== Role.ADMIN && order.userId !== requestingUserId) {
+      throw new ForbiddenException(
+        'You are not authorized to access this order',
+      );
+    }
     return order;
   }
 

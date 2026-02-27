@@ -12,17 +12,20 @@ import { R2Service } from 'src/r2/r2.service';
 
 @Injectable()
 export class ProductsService {
+  private readonly publicUrl: string;
+
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
     private r2Service: R2Service,
-  ) {}
+  ) {
+    this.publicUrl = this.configService.getOrThrow<string>('R2_PUBLIC_URL');
+  }
 
   private mapProduct(product: Product) {
-    const publicUrl = this.configService.getOrThrow<string>('R2_PUBLIC_URL');
     return {
       ...product,
-      imageUrl: `${publicUrl}/${product.imageKey}`,
+      imageUrl: `${this.publicUrl}/${product.imageKey}`,
     };
   }
 
@@ -38,7 +41,9 @@ export class ProductsService {
   }
 
   async findAll() {
-    const products = await this.prisma.product.findMany();
+    const products = await this.prisma.product.findMany({
+      where: { isPublished: true },
+    });
     return products.map((p) => this.mapProduct(p));
   }
 
@@ -51,21 +56,12 @@ export class ProductsService {
   }
 
   async findPurchasedByUser(userId: number) {
-    const orders = await this.prisma.order.findMany({
-      where: { userId, status: 'PAID' },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
+    const items = await this.prisma.orderItem.findMany({
+      where: { order: { userId, status: 'PAID' } },
+      include: { product: true },
+      distinct: ['productId'],
     });
-
-    const products = orders.flatMap((order) =>
-      order.items.map((item) => item.product),
-    );
-    return products.map((p) => this.mapProduct(p));
+    return items.map((item) => this.mapProduct(item.product));
   }
 
   async getDownloadUrl(userId: number, productId: number) {
@@ -101,7 +97,16 @@ export class ProductsService {
     return this.mapProduct(product);
   }
 
-  remove(id: number) {
+  async remove(id: number) {
+    const product = await this.prisma.product.findUnique({ where: { id } });
+    if (!product)
+      throw new NotFoundException(`Product with id ${id} not found`);
+
+    await Promise.all<void>([
+      this.r2Service.deleteFile(product.imageKey, false),
+      this.r2Service.deleteFile(product.fileKey, true),
+    ]);
+
     return this.prisma.product.delete({ where: { id } });
   }
 }

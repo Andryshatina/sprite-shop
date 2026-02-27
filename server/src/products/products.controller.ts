@@ -6,6 +6,8 @@ import {
   Patch,
   Param,
   Delete,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -21,6 +23,7 @@ export class ProductsController {
 
   @Auth(Role.ADMIN)
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   create(
     @Body() createProductDto: CreateProductDto,
     @CurrentUser() user: RequestWithUser['user'],
@@ -61,6 +64,7 @@ export class ProductsController {
 
   @Auth(Role.ADMIN)
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
     return this.productsService.remove(+id);
   }

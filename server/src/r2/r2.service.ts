@@ -7,6 +7,7 @@ import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
+  DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -79,6 +80,26 @@ export class R2Service {
       this.logger.error('Failed to generate presigned URL', error);
       throw new InternalServerErrorException(
         'Failed to generate presigned URL',
+      );
+    }
+  }
+
+  async deleteFile(fileKey: string, isPrivate: boolean) {
+    try {
+      const bucketName = isPrivate
+        ? this.configService.getOrThrow<string>('R2_PRIVATE_BUCKET')
+        : this.configService.getOrThrow<string>('R2_PUBLIC_BUCKET');
+
+      const command = new DeleteObjectCommand({
+        Bucket: bucketName,
+        Key: fileKey,
+      });
+
+      await this.s3Client.send(command);
+    } catch (error) {
+      this.logger.error(`Failed to delete file ${fileKey}`, error);
+      throw new InternalServerErrorException(
+        'Failed to delete file from storage',
       );
     }
   }
