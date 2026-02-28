@@ -10,10 +10,16 @@ import { R2Module } from './r2/r2.module';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
 import { StripeModule } from './stripe/stripe.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot({
+      throttlers: [{ ttl: 60000, limit: 60 }],
+    }),
     PrismaModule,
     UsersModule,
     AuthModule,
@@ -21,9 +27,16 @@ import { StripeModule } from './stripe/stripe.module';
     ProductsModule,
     OrdersModule,
     StripeModule,
+    HealthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -16,6 +16,7 @@ import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { type RequestWithUser } from './types/auth-types';
 import { Auth } from './decorators/auth.decorator';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -23,6 +24,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({ summary: 'Login with email and password' })
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @UseGuards(AuthGuard('local'))
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -31,6 +33,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Register a new user' })
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   register(@Body() createUserDto: CreateUserDto) {

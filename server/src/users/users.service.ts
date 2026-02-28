@@ -39,9 +39,33 @@ export class UsersService {
     return this.excludePassword(user);
   }
 
-  async findAll() {
-    const users = await this.prisma.user.findMany();
-    return users.map((user) => this.excludePassword(user));
+  async findAll(page: number, limit: number) {
+    const skip = (page - 1) * limit;
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      this.prisma.user.count(),
+    ]);
+    return {
+      data: users,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: number) {
@@ -67,6 +91,6 @@ export class UsersService {
   }
 
   async remove(id: number) {
-    return this.prisma.user.delete({ where: { id } });
+    await this.prisma.user.delete({ where: { id } });
   }
 }

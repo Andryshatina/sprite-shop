@@ -16,7 +16,6 @@ import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class R2Service {
   private readonly s3Client: S3Client;
-  private readonly bucketName: string;
   private readonly logger = new Logger(R2Service.name);
 
   constructor(private readonly configService: ConfigService) {

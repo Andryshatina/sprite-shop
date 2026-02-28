@@ -8,13 +8,21 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { Role } from '../generated/prisma/enums';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
+import { PaginateUsersDto } from './dto/paginate-users.dto';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiTags('Users')
 @ApiBearerAuth('access-token')
@@ -31,10 +39,13 @@ export class UsersController {
   }
 
   @ApiOperation({ summary: 'Get all users (Admin only)' })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
+  @SkipThrottle()
   @Auth(Role.ADMIN)
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query() { page, limit }: PaginateUsersDto) {
+    return this.usersService.findAll(page, limit);
   }
 
   @ApiOperation({ summary: 'Get a user by ID (Admin only)' })
