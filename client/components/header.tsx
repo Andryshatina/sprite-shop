@@ -58,6 +58,14 @@ export default function Header() {
                     </Link>
                   </DropdownMenuItem>
                 )}
+                {user?.role === "USER" && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/library">
+                      <Package className="mr-2 h-4 w-4" />
+                      <span>Library</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={logout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>

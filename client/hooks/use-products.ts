@@ -2,10 +2,21 @@ import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { Product } from "@/types";
 
+interface PaginatedProducts {
+  data: Product[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 export function useProducts() {
   return useQuery({
     queryKey: ["products"],
-    queryFn: () => api.get<Product[]>("/products").then((res) => res.data),
+    queryFn: () =>
+      api.get<PaginatedProducts>("/products").then((res) => res.data.data),
   });
 }
 
