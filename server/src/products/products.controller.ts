@@ -9,6 +9,7 @@ import {
   HttpCode,
   HttpStatus,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -65,24 +66,27 @@ export class ProductsController {
   @Auth()
   @Get(':id/download')
   getDownloadUrl(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: RequestWithUser['user'],
   ) {
-    return this.productsService.getDownloadUrl(user.id, +id);
+    return this.productsService.getDownloadUrl(user.id, id);
   }
 
   @ApiOperation({ summary: 'Get a single product by ID' })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productsService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.productsService.findOne(id);
   }
 
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Update a product (Admin only)' })
   @Auth(Role.ADMIN)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productsService.update(+id, updateProductDto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateProductDto: UpdateProductDto,
+  ) {
+    return this.productsService.update(id, updateProductDto);
   }
 
   @ApiBearerAuth('access-token')
@@ -90,7 +94,7 @@ export class ProductsController {
   @Auth(Role.ADMIN)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: string) {
-    return this.productsService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.productsService.remove(id);
   }
 }

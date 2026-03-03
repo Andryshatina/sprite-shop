@@ -10,6 +10,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { Product } from '../generated/prisma/client';
 import { R2Service } from 'src/r2/r2.service';
+import { OrderStatus } from '../generated/prisma/enums';
 
 @Injectable()
 export class ProductsService {
@@ -74,7 +75,7 @@ export class ProductsService {
 
   async findPurchasedByUser(userId: number) {
     const items = await this.prisma.orderItem.findMany({
-      where: { order: { userId, status: 'PAID' } },
+      where: { order: { userId, status: OrderStatus.PAID } },
       include: { product: true },
       distinct: ['productId'],
     });
@@ -86,7 +87,7 @@ export class ProductsService {
       where: {
         order: {
           userId,
-          status: 'PAID',
+          status: OrderStatus.PAID,
         },
         productId,
       },

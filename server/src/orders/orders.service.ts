@@ -5,7 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Role } from '../generated/prisma/enums';
+import { Role, OrderStatus } from '../generated/prisma/enums';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
@@ -35,7 +35,7 @@ export class OrdersService {
       data: {
         userId,
         total,
-        status: 'PENDING',
+        status: OrderStatus.PENDING,
         items: {
           create: products.map((product) => ({
             productId: product.id,
@@ -71,7 +71,7 @@ export class OrdersService {
       throw new ForbiddenException(
         'You are not authorized to access this order',
       );
-    if (order.status === 'PAID')
+    if (order.status === OrderStatus.PAID)
       throw new BadRequestException('Order is already paid');
 
     const lineItems = order.items.map((item) => ({
@@ -133,7 +133,7 @@ export class OrdersService {
         await this.prisma.order.update({
           where: { id: +orderId },
           data: {
-            status: 'PAID',
+            status: OrderStatus.PAID,
             stripeSessionId: session.id,
           },
         });
@@ -183,7 +183,9 @@ export class OrdersService {
     return order;
   }
 
-  remove(id: number) {
+  async remove(id: number) {
+    const order = await this.prisma.order.findUnique({ where: { id } });
+    if (!order) throw new NotFoundException(`Order with id ${id} not found`);
     return this.prisma.order.delete({ where: { id } });
   }
 }

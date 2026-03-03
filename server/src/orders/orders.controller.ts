@@ -10,6 +10,7 @@ import {
   BadRequestException,
   HttpCode,
   HttpStatus,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -42,10 +43,10 @@ export class OrdersController {
   @Post(':id/checkout')
   @HttpCode(HttpStatus.CREATED)
   createCheckoutSession(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: RequestWithUser['user'],
   ) {
-    return this.ordersService.createCheckoutSession(user.id, +id);
+    return this.ordersService.createCheckoutSession(user.id, id);
   }
 
   @ApiOperation({ summary: 'Stripe webhook handler (internal use only)' })
@@ -76,10 +77,10 @@ export class OrdersController {
   @Auth()
   @Get(':id')
   findOne(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: RequestWithUser['user'],
   ) {
-    return this.ordersService.findOne(+id, user.id, user.role);
+    return this.ordersService.findOne(id, user.id, user.role);
   }
 
   @ApiBearerAuth('access-token')
@@ -87,7 +88,7 @@ export class OrdersController {
   @Auth(Role.ADMIN)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: string) {
-    return this.ordersService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.ordersService.remove(id);
   }
 }
