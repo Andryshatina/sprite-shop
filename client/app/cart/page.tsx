@@ -27,7 +27,6 @@ export default function CartPage() {
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
-      alert("You must be logged in to checkout");
       router.push("/login");
       return;
     }
@@ -38,10 +37,10 @@ export default function CartPage() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
         <div className="text-6xl">
-          <ShoppingCart className="w-16 h-16 text-gray-500" />
+          <ShoppingCart className="w-16 h-16 text-muted-foreground" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">Your cart is empty</h1>
-        <p className="text-gray-500">
+        <h1 className="text-2xl font-bold">Your cart is empty</h1>
+        <p className="text-muted-foreground">
           {`It seems you haven't added anything yet.`}
         </p>
         <Button asChild>
@@ -55,7 +54,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Cart ({cartItems.length})</h1>
 
@@ -66,7 +65,7 @@ export default function CartPage() {
               <Card key={item.id} className="overflow-hidden">
                 <CardContent className="p-0 flex items-center">
                   {/* Image */}
-                  <div className="relative w-24 h-24 md:w-32 md:h-32 bg-gray-100 shrink-0">
+                  <div className="relative w-24 h-24 md:w-32 md:h-32 bg-muted shrink-0">
                     <Image
                       src={item.imageUrl}
                       alt={item.title}
@@ -80,7 +79,7 @@ export default function CartPage() {
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="font-bold text-lg">{item.title}</h3>
-                        <p className="text-sm text-gray-500 line-clamp-1">
+                        <p className="text-sm text-muted-foreground line-clamp-1">
                           {item.description}
                         </p>
                       </div>
@@ -94,7 +93,7 @@ export default function CartPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        className="text-destructive hover:text-destructive/80 hover:bg-destructive/5"
                         onClick={() => removeFromCart(item.id)}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
@@ -122,11 +121,13 @@ export default function CartPage() {
 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Total products</span>
+                    <span className="text-muted-foreground">
+                      Total products
+                    </span>
                     <span>{formatCurrency(totalPrice)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Taxes</span>
+                    <span className="text-muted-foreground">Taxes</span>
                     <span>$0.00</span>
                   </div>
                 </div>
@@ -152,7 +153,7 @@ export default function CartPage() {
                   Go to payment
                 </Button>
 
-                <p className="text-xs text-center text-gray-400">
+                <p className="text-xs text-center text-muted-foreground/60">
                   Safe payment through Stripe
                 </p>
               </CardContent>
