@@ -1,11 +1,8 @@
 "use client";
 import { Button } from "@/components/ui/button";
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import api from "@/lib/axios";
 import { useState } from "react";
-import { useAuthStore } from "@/store/auth";
 import Link from "next/link";
 import {
   Card,
@@ -14,42 +11,26 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
-import { AxiosError } from "axios";
+import { useLogin, getErrorMessage } from "@/hooks/use-auth";
 
 export default function LoginPage() {
-  const router = useRouter();
-  const { login } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const loginMutation = useLogin();
+
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const response = await api.post("/auth/login", {
-        email,
-        password,
-      });
-
-      login(response.data.access_token);
-      router.push("/");
-    } catch (err: unknown) {
-      console.error(err);
-      const error = err as AxiosError<{ message: string }>;
-      setError(
-        error.response?.data?.message || "Login failed. Please try again.",
-      );
-    } finally {
-      setLoading(false);
-    }
+    loginMutation.mutate({ email, password });
   };
 
+  const errorMessage = getErrorMessage(
+    loginMutation.error,
+    "Login failed. Please try again.",
+  );
+
   return (
-    <div className="flex min-h-screen bg-gray-50 items-center justify-center p-4">
+    <div className="flex min-h-screen bg-background items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-center">Login</CardTitle>
@@ -80,11 +61,17 @@ export default function LoginPage() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Logging in..." : "Login"}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loginMutation.isPending}
+            >
+              {loginMutation.isPending ? "Logging in..." : "Login"}
             </Button>
-            {error && (
-              <div className="text-red-500 text-sm text-center">{error}</div>
+            {loginMutation.isError && (
+              <div className="text-destructive text-sm text-center">
+                {errorMessage}
+              </div>
             )}
           </form>
         </CardContent>

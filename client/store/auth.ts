@@ -41,7 +41,6 @@ export const useAuthStore = create<AuthState>()(
             },
             isAuthenticated: true,
           });
-          localStorage.setItem("token", token);
         } catch (error) {
           console.error(error);
           set({ token: null, user: null, isAuthenticated: false });
@@ -49,7 +48,6 @@ export const useAuthStore = create<AuthState>()(
       },
       logout: () => {
         set({ token: null, user: null, isAuthenticated: false });
-        localStorage.removeItem("token");
       },
     }),
     {

@@ -11,16 +11,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import api from "@/lib/axios";
 import { FileUpload } from "@/components/file-upload";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useCreateProduct, getErrorMessage } from "@/hooks/use-auth";
+import { useAuthStore } from "@/store/auth";
+import { useRouter } from "next/navigation";
 
 export default function CreateProductPage() {
+  const { isAuthenticated, user } = useAuthStore();
+  const router = useRouter();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [previewImage, setPreviewImage] = useState<File | null>(null);
   const [productFile, setProductFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [uploadError, setUploadError] = useState("");
+
+  useEffect(() => {
+    if (!isAuthenticated || user?.role !== "ADMIN") {
+      router.push("/");
+    }
+  }, [isAuthenticated, user, router]);
+
+  const createProductMutation = useCreateProduct();
 
   const uploadToR2 = async (file: File, isPrivate: boolean) => {
     const {
@@ -43,35 +56,37 @@ export default function CreateProductPage() {
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      if (!previewImage || !productFile) {
-        setError("Please upload both a preview image and a product file");
-        setLoading(false);
-        return;
-      }
+    setUploadError("");
 
+    if (!previewImage || !productFile) {
+      setUploadError("Please upload both a preview image and a product file");
+      return;
+    }
+
+    try {
       const previewImageKey = await uploadToR2(previewImage, false);
       const productFileKey = await uploadToR2(productFile, true);
 
-      await api.post("/products", {
+      createProductMutation.mutate({
         title,
         description,
         price: Number(price) * 100,
         imageKey: previewImageKey,
         fileKey: productFileKey,
       });
-    } catch (error) {
-      console.error(error);
-      setError("Something went wrong");
-    } finally {
-      setLoading(false);
+    } catch {
+      setUploadError("Failed to upload files");
     }
   };
 
+  const errorMessage =
+    uploadError ||
+    (createProductMutation.isError
+      ? getErrorMessage(createProductMutation.error, "Something went wrong")
+      : "");
+
   return (
-    <div className="flex min-h-screen bg-gray-50 items-center justify-center p-4">
+    <div className="flex min-h-screen bg-background items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-center">Create Product</CardTitle>
@@ -142,11 +157,19 @@ export default function CreateProductPage() {
                 Upload a product file for the product
               </FieldDescription>
             </Field>
-            {error && (
-              <div className="text-red-500 text-sm text-center">{error}</div>
+            {errorMessage && (
+              <div className="text-destructive text-sm text-center">
+                {errorMessage}
+              </div>
             )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating..." : "Create Product"}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={createProductMutation.isPending}
+            >
+              {createProductMutation.isPending
+                ? "Creating..."
+                : "Create Product"}
             </Button>
           </form>
         </CardContent>

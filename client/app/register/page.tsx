@@ -11,50 +11,29 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import api from "@/lib/axios";
-import { AxiosError } from "axios";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useAuthStore } from "@/store/auth";
+import { useRegister, getErrorMessage } from "@/hooks/use-auth";
 
 export default function RegisterPage() {
-  const router = useRouter();
-  const { login } = useAuthStore();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const registerMutation = useRegister();
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await api.post("/auth/register", {
-        name,
-        email,
-        password,
-      });
-
-      login(response.data.access_token);
-      router.push("/");
-    } catch (err: unknown) {
-      console.error(err);
-      const error = err as AxiosError<{ message: string }>;
-      setError(
-        error.response?.data?.message ||
-          "Registration failed. Please try again.",
-      );
-    } finally {
-      setLoading(false);
-    }
+    registerMutation.mutate({ name, email, password });
   };
 
+  const errorMessage = getErrorMessage(
+    registerMutation.error,
+    "Registration failed. Please try again.",
+  );
+
   return (
-    <div className="flex min-h-screen bg-gray-50 items-center justify-center p-4">
+    <div className="flex min-h-screen bg-background items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">
@@ -98,11 +77,19 @@ export default function RegisterPage() {
                 required
               />
             </div>
-            {error && (
-              <div className="text-red-500 text-sm text-center">{error}</div>
+            {registerMutation.isError && (
+              <div className="text-destructive text-sm text-center">
+                {errorMessage}
+              </div>
             )}
-            <Button className="w-full" type="submit" disabled={loading}>
-              {loading ? "Creating account..." : "Create account"}
+            <Button
+              className="w-full"
+              type="submit"
+              disabled={registerMutation.isPending}
+            >
+              {registerMutation.isPending
+                ? "Creating account..."
+                : "Create account"}
             </Button>
           </form>
         </CardContent>
