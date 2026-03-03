@@ -1,25 +1,20 @@
 import {
   Injectable,
   Logger,
+  NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { User } from '../generated/prisma/client';
+import { excludePassword } from 'src/common/utils/exclude-password';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
   constructor(private prisma: PrismaService) {}
   private readonly roundsOfHash = 10;
-
-  private excludePassword(user: User): Omit<User, 'password'> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...result } = user;
-    return result;
-  }
 
   async create(createUserDto: CreateUserDto) {
     const existingUser = await this.findOneByEmail(createUserDto.email);
@@ -36,7 +31,7 @@ export class UsersService {
         password: hashedPass,
       },
     });
-    return this.excludePassword(user);
+    return excludePassword(user);
   }
 
   async findAll(page: number, limit: number) {
@@ -72,10 +67,10 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({ where: { id } });
 
     if (!user) {
-      return null;
+      throw new NotFoundException(`User with id ${id} not found`);
     }
 
-    return this.excludePassword(user);
+    return excludePassword(user);
   }
 
   async findOneByEmail(email: string) {
@@ -87,7 +82,7 @@ export class UsersService {
       where: { id },
       data: updateUserDto,
     });
-    return this.excludePassword(user);
+    return excludePassword(user);
   }
 
   async remove(id: number) {

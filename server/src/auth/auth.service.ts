@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { type UserWithoutPassword } from './types/auth-types';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { excludePassword } from 'src/common/utils/exclude-password';
 
 @Injectable()
 export class AuthService {
@@ -19,9 +20,7 @@ export class AuthService {
     const user = await this.usersService.findOneByEmail(email);
 
     if (user && (await bcrypt.compare(pass, user.password))) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...restUser } = user;
-      return restUser;
+      return excludePassword(user);
     }
 
     return null;
@@ -37,6 +36,7 @@ export class AuthService {
       email: user.email,
       sub: user.id,
       role: user.role,
+      name: user.name,
     };
     return {
       access_token: this.jwtService.sign(payload),
