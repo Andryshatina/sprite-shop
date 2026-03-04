@@ -2,71 +2,134 @@
 
 import { useProducts } from "@/hooks/use-products";
 import ProductCard from "@/components/product-card";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, Layers, Shield, Zap } from "lucide-react";
+
+const FEATURES = [
+  {
+    icon: Zap,
+    label: "Instant Delivery",
+    desc: "Download immediately after purchase",
+  },
+  {
+    icon: Shield,
+    label: "Commercial License",
+    desc: "Use in personal and commercial projects",
+  },
+  {
+    icon: Layers,
+    label: "High Resolution",
+    desc: "Every asset in premium quality",
+  },
+];
 
 export default function Home() {
   const { data: products, isLoading, error } = useProducts();
 
   return (
     <main className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="relative py-20 px-4 md:py-32 bg-secondary/30 border-b overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent pointer-events-none" />
-        <div className="container mx-auto text-center space-y-6 relative z-10">
-          <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-primary/10 text-primary mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700 border border-primary/20">
-            <Sparkles className="w-4 h-4 mr-2" />
-            <span className="text-sm font-medium">Premium Digital Assets</span>
+      {/* ── Hero ── */}
+      <section className="relative overflow-hidden border-b border-border/50 py-24 md:py-36 px-4">
+        {/* Background glow blobs */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-150 h-150 rounded-full bg-primary/8 blur-3xl" />
+          <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-primary/5 blur-2xl" />
+        </div>
+
+        <div className="container mx-auto text-center relative z-10 space-y-8">
+          {/* Pill badge */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-4 py-1.5 text-sm font-medium text-primary animate-in fade-in slide-in-from-bottom-3 duration-700">
+            <Sparkles className="w-3.5 h-3.5" />
+            Premium Digital Assets
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tighter animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100 bg-clip-text text-transparent bg-linear-to-r from-foreground to-foreground/70">
-            Elevate Your <span className="text-primary">Game</span>
+
+          {/* Headline */}
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tighter leading-[1.05] animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
+            Elevate Your{" "}
+            <span className="relative inline-block">
+              <span className="text-primary">Game</span>
+              {/* Underline accent */}
+              <span className="absolute -bottom-1 left-0 right-0 h-1 rounded-full bg-primary/30" />
+            </span>
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 leading-relaxed">
-            Discover high-quality sprites, textures, and models for your next
-            project. Curated by professionals for professionals.
+
+          {/* Sub */}
+          <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-6 duration-700 delay-200">
+            Curated sprites, textures &amp; assets for your next project —
+            crafted by professionals, ready to ship.
           </p>
+
+          {/* Feature pills row */}
+          <div className="flex flex-wrap justify-center gap-3 pt-2 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-300">
+            {FEATURES.map(({ icon: Icon, label, desc }) => (
+              <div
+                key={label}
+                title={desc}
+                className="flex items-center gap-2 rounded-xl border border-border/60 bg-card px-4 py-2 text-sm text-muted-foreground shadow-sm hover:border-primary/30 hover:text-foreground transition-colors cursor-default"
+              >
+                <Icon className="w-4 h-4 text-primary shrink-0" />
+                {label}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Products Grid */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold tracking-tight">Featured Assets</h2>
+      {/* ── Products Grid ── */}
+      <section className="container mx-auto px-4 py-14">
+        <div className="flex items-end justify-between mb-8 gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-primary font-semibold mb-1">
+              Browse
+            </p>
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
+              Featured Assets
+            </h2>
+          </div>
+          {!isLoading && !error && (
+            <span className="text-sm text-muted-foreground shrink-0">
+              {products?.length ?? 0}{" "}
+              {products?.length === 1 ? "item" : "items"}
+            </span>
+          )}
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 space-y-4">
+          <div className="flex flex-col items-center justify-center py-28 space-y-4">
             <Loader2 className="w-10 h-10 animate-spin text-primary" />
-            <p className="text-muted-foreground">Loading assets...</p>
+            <p className="text-muted-foreground text-sm animate-pulse">
+              Loading assets...
+            </p>
           </div>
         ) : error ? (
-          <div className="text-center py-20 text-destructive bg-destructive/5 rounded-lg border border-destructive/20 relative overflow-hidden">
-            <div className="relative z-10">
-              <p className="text-lg font-medium mb-1">Error Loading Products</p>
-              <p className="text-sm opacity-80">
-                Failed to load products. Please try again later.
-              </p>
-            </div>
+          <div className="flex flex-col items-center justify-center py-28 gap-3 text-center rounded-2xl border-2 border-dashed border-destructive/20 bg-destructive/5">
+            <p className="text-base font-semibold text-destructive">
+              Failed to load products
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Please try refreshing the page.
+            </p>
+          </div>
+        ) : products?.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-28 gap-3 rounded-2xl border-2 border-dashed border-muted">
+            <Layers className="w-10 h-10 text-muted-foreground/40" />
+            <p className="text-lg font-medium text-muted-foreground">
+              No products yet
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Check back later for new inventory.
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {products?.map((product, index) => (
               <div
                 key={product.id}
-                className="animate-in fade-in slide-in-from-bottom-8 duration-500 fill-mode-both"
-                style={{ animationDelay: `${index * 100}ms` }}
+                className="animate-in fade-in slide-in-from-bottom-6 duration-500 fill-mode-both"
+                style={{ animationDelay: `${index * 75}ms` }}
               >
                 <ProductCard product={product} />
               </div>
             ))}
-          </div>
-        )}
-
-        {!isLoading && !error && products?.length === 0 && (
-          <div className="text-center py-32 border-2 border-dashed border-muted rounded-xl">
-            <p className="text-xl text-muted-foreground">No products found.</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Check back later for new inventory.
-            </p>
           </div>
         )}
       </section>
