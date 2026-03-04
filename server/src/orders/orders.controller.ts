@@ -6,12 +6,14 @@ import {
   Param,
   Delete,
   Headers,
+  Req,
   type RawBodyRequest,
   BadRequestException,
   HttpCode,
   HttpStatus,
   ParseIntPipe,
 } from '@nestjs/common';
+import { type Request } from 'express';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CurrentUser } from 'src/auth/decorators/user.decorator';
@@ -53,7 +55,7 @@ export class OrdersController {
   @Post('webhook')
   async handleStripeWebhook(
     @Headers('stripe-signature') signature: string,
-    @Body() req: RawBodyRequest<Express.Request>,
+    @Req() req: RawBodyRequest<Request>,
   ) {
     if (!req.rawBody) {
       throw new BadRequestException('Raw body is required');

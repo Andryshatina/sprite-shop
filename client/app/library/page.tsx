@@ -16,17 +16,17 @@ import Image from "next/image";
 import api from "@/lib/axios";
 
 export default function LibraryPage() {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, _hasHydrated } = useAuthStore();
   const router = useRouter();
   const { data: products, isLoading, error } = useLibrary();
   const [downloading, setDownloading] = useState<number | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (_hasHydrated && !isAuthenticated) {
       router.push("/login");
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, _hasHydrated, router]);
 
   const handleDownload = async (id: number) => {
     try {
@@ -48,7 +48,7 @@ export default function LibraryPage() {
     }
   };
 
-  if (isLoading) {
+  if (!_hasHydrated || isLoading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
         <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
