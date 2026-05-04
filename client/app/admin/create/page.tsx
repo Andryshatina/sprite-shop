@@ -8,6 +8,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import api from "@/lib/axios";
 import { FileUpload } from "@/components/file-upload";
@@ -15,6 +16,7 @@ import { useState, useEffect } from "react";
 import { useCreateProduct, getErrorMessage } from "@/hooks/use-auth";
 import { useAuthStore } from "@/store/auth";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function CreateProductPage() {
   const { isAuthenticated, user } = useAuthStore();
@@ -25,7 +27,6 @@ export default function CreateProductPage() {
   const [price, setPrice] = useState("");
   const [previewImage, setPreviewImage] = useState<File | null>(null);
   const [productFile, setProductFile] = useState<File | null>(null);
-  const [uploadError, setUploadError] = useState("");
 
   useEffect(() => {
     if (!isAuthenticated || user?.role !== "ADMIN") {
@@ -44,22 +45,28 @@ export default function CreateProductPage() {
       isPrivate,
     });
 
-    await api.put(uploadUrl, file, {
+
+    const response = await fetch(uploadUrl, {
+      method: "PUT",
+      body: file,
       headers: {
         "Content-Type": file.type,
       },
-      baseURL: "",
     });
+
+    if (!response.ok) {
+      throw new Error("Failed to upload file to R2");
+    }
 
     return fileKey;
   };
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setUploadError("");
+
 
     if (!previewImage || !productFile) {
-      setUploadError("Please upload both a preview image and a product file");
+      toast.error("Please upload both a preview image and a product file");
       return;
     }
 
@@ -67,23 +74,25 @@ export default function CreateProductPage() {
       const previewImageKey = await uploadToR2(previewImage, false);
       const productFileKey = await uploadToR2(productFile, true);
 
-      createProductMutation.mutate({
+      await createProductMutation.mutateAsync({
         title,
         description,
         price: Number(price) * 100,
         imageKey: previewImageKey,
         fileKey: productFileKey,
       });
+
+      toast.success("Product created successfully!");
+      setTitle("");
+      setDescription("");
+      setPrice("");
+      setPreviewImage(null);
+      setProductFile(null);
     } catch {
-      setUploadError("Failed to upload files");
+      toast.error(getErrorMessage(createProductMutation.error, "Failed to create product"));
     }
   };
 
-  const errorMessage =
-    uploadError ||
-    (createProductMutation.isError
-      ? getErrorMessage(createProductMutation.error, "Something went wrong")
-      : "");
 
   return (
     <div className="flex min-h-screen bg-background items-center justify-center p-4">
@@ -106,13 +115,13 @@ export default function CreateProductPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Input
+              <Label htmlFor="description">Description (Markdown)</Label>
+              <Textarea
                 id="description"
-                type="text"
                 name="description"
-                placeholder="Description"
+                placeholder="Product description — supports **Markdown** formatting"
                 required
+                rows={6}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
@@ -157,11 +166,7 @@ export default function CreateProductPage() {
                 Upload a product file for the product
               </FieldDescription>
             </Field>
-            {errorMessage && (
-              <div className="text-destructive text-sm text-center">
-                {errorMessage}
-              </div>
-            )}
+
             <Button
               type="submit"
               className="w-full"
