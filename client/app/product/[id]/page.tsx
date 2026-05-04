@@ -24,36 +24,31 @@ export default function ProductPage() {
   const { id } = useParams();
   const { data: product, isLoading, error } = useProduct(id as string);
 
-  const addToCart = useCartStore((state) => state.addToCart);
-  const cartItems = useCartStore((state) => state.cartItems);
+  const addToCart = useCartStore((s) => s.addToCart);
+  const cartItems = useCartStore((s) => s.cartItems);
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <p className="text-muted-foreground text-sm animate-pulse">
-          Loading product...
-        </p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">Loading product…</p>
       </div>
     );
   }
 
   if (error || !product) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-4">
-        <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center">
-          <span className="text-3xl">😕</span>
-        </div>
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-1">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-5 px-4 text-center">
+        <div>
+          <h2 className="text-lg font-semibold mb-1">
             {error ? "Failed to load product" : "Product not found"}
           </h2>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground">
             The product you&apos;re looking for doesn&apos;t exist or was
             removed.
           </p>
         </div>
-        <Button asChild variant="outline" className="gap-2">
+        <Button asChild variant="outline" size="sm" className="gap-2">
           <Link href="/">
             <ArrowLeft className="w-4 h-4" />
             Back to Shop
@@ -63,7 +58,7 @@ export default function ProductPage() {
     );
   }
 
-  const isProductInCart = cartItems.some((item) => item.id === product.id);
+  const isInCart = cartItems.some((item) => item.id === product.id);
 
   const features = [
     { icon: Download, label: "Instant Download" },
@@ -73,14 +68,13 @@ export default function ProductPage() {
   ];
 
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto px-4 py-8">
-        {/* Back button */}
+    <div className="min-h-screen bg-background">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <Button
           asChild
           variant="ghost"
           size="sm"
-          className="gap-2 text-muted-foreground hover:text-foreground -ml-2 mb-6"
+          className="gap-1.5 text-muted-foreground hover:text-foreground -ml-2 mb-8"
         >
           <Link href="/">
             <ArrowLeft className="w-4 h-4" />
@@ -88,37 +82,24 @@ export default function ProductPage() {
           </Link>
         </Button>
 
-        {/* 
-          Grid layout:
-          Desktop: [image | sidebar (row-span-2)]
-                   [description |]
-          Mobile:  image → sidebar → description (via order)
-        */}
-        <div className="grid lg:grid-cols-[1fr_360px] lg:grid-rows-[auto_1fr] gap-6 xl:gap-8 items-start">
-          {/* Image — order 1 on mobile, top-left on desktop */}
-          <div className="order-1 lg:row-start-1 lg:col-start-1 relative rounded-2xl overflow-hidden bg-muted border border-border/40 shadow-xl group lg:max-w-[calc(100vh-10rem)]">
-            <div className="aspect-square relative">
-              <Image
-                src={product.imageUrl}
-                alt={product.title}
-                fill
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                priority
-              />
-              {/* Subtle gradient overlay at bottom */}
-              <div className="absolute inset-0 bg-linear-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
-            </div>
-
-            {/* Status badge on image */}
-            <div className="absolute top-4 left-4">
+        <div className="grid lg:grid-cols-[1fr_380px] gap-8 xl:gap-12 items-start">
+          <div className="relative rounded-2xl overflow-hidden bg-muted aspect-square w-full">
+            <Image
+              src={product.imageUrl}
+              alt={product.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 55vw"
+              priority
+            />
+            <div className="absolute top-3 left-3">
               <Badge
                 variant={product.isPublished ? "default" : "secondary"}
-                className="backdrop-blur-sm bg-background/80 text-foreground border border-border/50 shadow-sm"
+                className="bg-background/80 backdrop-blur-sm text-foreground border border-border/40 text-xs font-medium"
               >
                 {product.isPublished ? (
                   <span className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
                     In Stock
                   </span>
                 ) : (
@@ -128,86 +109,71 @@ export default function ProductPage() {
             </div>
           </div>
 
-          {/* Sidebar — order 2 on mobile, right col spanning both rows on desktop */}
-          <div className="order-2 lg:row-start-1 lg:row-span-2 lg:col-start-2 lg:sticky lg:top-16 flex flex-col gap-4">
-            {/* Title & price card */}
-            <div className="rounded-2xl border border-border/40 bg-card shadow-sm p-6 flex flex-col gap-5">
-              {/* Title */}
-              <div>
-                <p className="text-xs text-muted-foreground mb-2 uppercase tracking-widest font-medium">
-                  Digital Asset · #{product.id}
-                </p>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground leading-tight">
-                  {product.title}
-                </h1>
-              </div>
+          <div className="flex flex-col gap-4 lg:sticky lg:top-20 lg:col-start-2 lg:row-start-1 lg:row-span-2">
+            <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
+              Digital Asset · #{product.id}
+            </p>
 
-              {/* Divider */}
-              <div className="h-px bg-border/60" />
+            <h1 className="text-3xl font-bold tracking-tight text-foreground leading-snug">
+              {product.title}
+            </h1>
 
-              {/* Price */}
-              <div className="flex items-end gap-2">
-                <span className="text-4xl font-extrabold text-foreground tracking-tight">
-                  {formatCurrency(product.price)}
-                </span>
-                <span className="text-muted-foreground text-sm mb-1">USD</span>
-              </div>
+            <div className="flex items-baseline gap-2 pt-1">
+              <span className="text-4xl font-extrabold tracking-tight text-foreground">
+                {formatCurrency(product.price)}
+              </span>
+              <span className="text-sm text-muted-foreground">USD</span>
+            </div>
 
-              {/* CTA */}
-              <Button
-                size="lg"
-                className="w-full gap-2 text-base py-6 transition-all duration-300"
-                onClick={() => addToCart(product)}
-                disabled={isProductInCart || !product.isPublished}
-              >
-                {isProductInCart ? (
-                  <>
-                    <CheckCircle2 className="w-5 h-5" />
-                    Added to Cart
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="w-5 h-5" />
-                    Add to Cart
-                  </>
-                )}
-              </Button>
-
-              {!product.isPublished && (
-                <p className="text-xs text-center text-muted-foreground">
-                  This product is currently unavailable.
-                </p>
+            <Button
+              size="lg"
+              className="w-full gap-2 h-12 text-base mt-1"
+              onClick={() => addToCart(product)}
+              disabled={isInCart || !product.isPublished}
+            >
+              {isInCart ? (
+                <>
+                  <CheckCircle2 className="w-5 h-5" />
+                  Added to Cart
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="w-5 h-5" />
+                  Add to Cart
+                </>
               )}
+            </Button>
+
+            {!product.isPublished && (
+              <p className="text-xs text-center text-muted-foreground -mt-1">
+                This product is currently unavailable.
+              </p>
+            )}
+
+            <div className="h-px bg-border/50 my-1" />
+
+            <div className="grid grid-cols-2 gap-2">
+              {features.map(({ icon: Icon, label }) => (
+                <div
+                  key={label}
+                  className="flex items-center gap-2 rounded-xl bg-muted/60 px-3 py-2.5 text-sm font-medium text-foreground"
+                >
+                  <Icon className="w-4 h-4 text-primary shrink-0" />
+                  {label}
+                </div>
+              ))}
             </div>
 
-            {/* Features grid */}
-            <div className="rounded-2xl border border-border/40 bg-card shadow-sm p-5">
-              <div className="grid grid-cols-2 gap-3">
-                {features.map(({ icon: Icon, label }) => (
-                  <div
-                    key={label}
-                    className="flex items-center gap-2.5 rounded-xl bg-muted/50 px-3 py-2.5 text-sm font-medium text-foreground"
-                  >
-                    <Icon className="w-4 h-4 text-primary shrink-0" />
-                    {label}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Guarantee note */}
-            <p className="text-xs text-center text-muted-foreground px-2">
+            <p className="text-xs text-center text-muted-foreground pt-1">
               🔒 Secure checkout via Stripe · All sales final
             </p>
           </div>
 
-          {/* Description — order 3 on mobile, bottom-left on desktop */}
-          <div className="order-3 lg:row-start-2 lg:col-start-1 rounded-2xl border border-border/40 bg-card p-6 shadow-sm">
-            <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
-              <span className="w-1 h-4 rounded-full bg-primary inline-block" />
+          <div className="rounded-2xl border border-border/40 bg-card p-6">
+            <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4">
               About this asset
             </h2>
-            <div className="prose prose-zinc dark:prose-invert max-w-none prose-p:text-muted-foreground prose-p:leading-relaxed prose-headings:text-foreground prose-strong:text-foreground">
+            <div className="prose prose-zinc dark:prose-invert max-w-none prose-p:text-muted-foreground prose-p:leading-relaxed prose-headings:text-foreground prose-strong:text-foreground text-sm">
               <ReactMarkdown>{product.description}</ReactMarkdown>
             </div>
           </div>
